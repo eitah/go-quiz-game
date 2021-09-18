@@ -51,6 +51,8 @@ func mainErr() error {
 	var countCorrect int
 	var countWrong int
 
+	// The problemloop here acts like a goto in ending the loop that we're in
+problemLoop:
 	for index, question := range questions {
 
 		fmt.Printf("Here is your #%d question. %s\n", index+1, question)
@@ -69,9 +71,7 @@ func mainErr() error {
 		select {
 		case <-timer.C:
 			fmt.Println("Sorry time is up.")
-			countDidNotAnswer := len(questions) - countCorrect - countWrong
-			fmt.Printf("Quiz complete! you scored %d/%d correct. You got %d wrong and did not answer %d questions\n", countCorrect, len(questions), countWrong, countDidNotAnswer)
-			return nil
+			break problemLoop
 		case err := <-errCh:
 			if err != nil {
 				return err
@@ -89,7 +89,7 @@ func mainErr() error {
 	}
 
 	countDidNotAnswer := len(questions) - countCorrect - countWrong
-	fmt.Printf("Quiz complete! you scored %d/%d correct, which means you got %d wrong and did not answer %d questions\n", countCorrect, len(questions), countWrong, countDidNotAnswer)
+	fmt.Printf("Quiz complete! you scored %d/%d correct. You got %d wrong and did not answer %d questions\n", countCorrect, len(questions), countWrong, countDidNotAnswer)
 
 	return nil
 }
