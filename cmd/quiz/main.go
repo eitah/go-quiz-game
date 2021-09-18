@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"encoding/csv"
+	"errors"
 	"flag"
 	"fmt"
 	"math/rand"
@@ -13,12 +14,41 @@ import (
 
 func main() {
 	if err := mainErr(); err != nil {
-		fmt.Printf("error: %s", err)
+		fmt.Printf("error: %s\n", err)
 		os.Exit(1)
 	}
 }
 
 func mainErr() error {
+	timer := time.NewTimer(2 * time.Second)
+
+	quit := make(chan bool)
+	errc := make(chan error)
+	done := make(chan error)
+	defer close(quit)
+	defer close(errc)
+	defer close(done)
+
+	go func() {
+		for {
+			select {
+			case <-done:
+				return
+			case <-timer.C:
+				fmt.Println("Sorry, time is up!")
+				errc <- errors.New("timer finished")
+			case <-errc:
+				return
+			}
+		}
+	}()
+
+	for err := range errc {
+		if err != nil {
+			return err
+		}
+	}
+
 	quizFile := flag.String("in", "./problems.csv", "Path to a quiz file to load with data. In the csv format of question,answer, e.g. 1+2,3")
 	shouldShuffle := flag.Bool("shuffle", false, "Flag to indicate if you should shuffle quiz qs between runs.")
 	flag.Parse()
