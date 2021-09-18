@@ -50,7 +50,11 @@ func mainErr() error {
 	var countCorrect int
 	var countWrong int
 	for index, question := range questions {
-		fmt.Printf("Here is your next question. %s\n", question)
+		delimiter := "next"
+		if index == 0 {
+			delimiter = "first"
+		}
+		fmt.Printf("Here is your %s question. %s\n", delimiter, question)
 		fmt.Print(">")
 		sentence, err := buf.ReadString('\n')
 		if err != nil {
