@@ -5,8 +5,10 @@ import (
 	"encoding/csv"
 	"flag"
 	"fmt"
+	"math/rand"
 	"os"
 	"strings"
+	"time"
 )
 
 func main() {
@@ -18,6 +20,7 @@ func main() {
 
 func mainErr() error {
 	quizFile := flag.String("in", "./problems.csv", "Path to a quiz file to load with data. In the csv format of question,answer, e.g. 1+2,3")
+	shouldShuffle := flag.Bool("shuffle", false, "Flag to indicate if you should shuffle quiz qs between runs.")
 	flag.Parse()
 	f, err := os.Open(*quizFile)
 	if err != nil {
@@ -28,6 +31,11 @@ func mainErr() error {
 	parsed, err := csv.NewReader(f).ReadAll()
 	if err != nil {
 		return err
+	}
+
+	if *shouldShuffle {
+		rand.Seed(time.Now().UnixNano())
+		rand.Shuffle(len(parsed), func(i, j int) { parsed[i], parsed[j] = parsed[j], parsed[i] })
 	}
 
 	var questions []string
@@ -70,7 +78,8 @@ func mainErr() error {
 		}
 	}
 
-	fmt.Printf("Quiz complete! you scored %d/%d correct, which means you missed %d\n", countCorrect, len(questions), countWrong)
+	countDidNotAnswer := len(questions) - countCorrect - countWrong
+	fmt.Printf("Quiz complete! you scored %d/%d correct, which means you got %d wrong and did not answer %d questions\n", countCorrect, len(questions), countWrong, countDidNotAnswer)
 
 	return nil
 }
